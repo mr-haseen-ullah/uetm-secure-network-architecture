@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UETM Secure Network Architecture — Information Security CEP</title>
+    <meta name="description" content="Secure Network Architecture Design for University of Engineering and Technology Mardan (UETM). Interactive topology, security layers, and threat simulation dashboard.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- ========== LOADING SCREEN ========== -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h2 class="loading-title">UETM Security Operations</h2>
+            <p class="loading-subtitle">Initializing Secure Network Architecture...</p>
+            <div class="loading-bar-track">
+                <div class="loading-bar-fill" id="loadingBar"></div>
+            </div>
+            <span class="loading-percent" id="loadingPercent">0%</span>
+        </div>
+    </div>
+
+    <!-- ========== MAIN APPLICATION ========== -->
+    <div id="app" class="app hidden">
+
+        <!-- ===== TOP NAVIGATION BAR ===== -->
+        <header id="topNav" class="top-nav">
+            <div class="nav-left">
+                <div class="nav-logo">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="nav-title-group">
+                    <span class="nav-badge">Information Security CEP</span>
+                    <h1 class="nav-title">UETM Secure Network Architecture</h1>
+                </div>
+            </div>
+            <nav class="nav-tabs" id="navTabs">
+                <button class="nav-tab active" data-view="topology" id="tab-topology">
+                    <i class="fa-solid fa-map"></i>
+                    <span>Campus Map</span>
+                </button>
+                <button class="nav-tab" data-view="security" id="tab-security">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>Security Layers</span>
+                </button>
+                <button class="nav-tab" data-view="attack" id="tab-attack">
+                    <i class="fa-solid fa-skull-crossbones"></i>
+                    <span>Threat Sim</span>
+                </button>
+                <button class="nav-tab" data-view="improvements" id="tab-improvements">
+                    <i class="fa-solid fa-arrow-up-right-dots"></i>
+                    <span>Improvements</span>
+                </button>
+            </nav>
+            <div class="nav-right">
+                <div class="nav-status-group">
+                    <span class="status-dot online"></span>
+                    <span class="status-label">System Online</span>
+                </div>
+                <div class="nav-clock" id="navClock"></div>
+            </div>
+        </header>
+
+        <!-- ===== VIEW: TOPOLOGY / CAMPUS MAP ===== -->
+        <section id="view-topology" class="view active">
+            <div class="topology-layout">
+                <!-- Canvas Area -->
+                <div class="topology-canvas-wrapper">
+                    <div class="canvas-toolbar">
+                        <span class="toolbar-label"><i class="fa-solid fa-map"></i> CAMPUS NETWORK BLUEPRINT — UET MARDAN</span>
+                        <div class="toolbar-legend">
+                            <span class="legend-item"><span class="legend-line trunk"></span>Fiber Trunk</span>
+                            <span class="legend-item"><span class="legend-line vlan"></span>VLAN Link</span>
+                            <span class="legend-separator"></span>
+                            <span class="legend-item"><span class="legend-dot online"></span>Online</span>
+                            <span class="legend-item"><span class="legend-dot standby"></span>Standby</span>
+                            <span class="legend-item"><span class="legend-dot alert"></span>Alert</span>
+                        </div>
+                    </div>
+                    <div class="canvas-container" id="canvasContainer">
+                        <canvas id="floorplanCanvas"></canvas>
+                        <!-- Tooltip -->
+                        <div class="node-tooltip hidden" id="nodeTooltip">
+                            <div class="tooltip-header">
+                                <span class="tooltip-status-dot"></span>
+                                <span class="tooltip-title"></span>
+                            </div>
+                            <div class="tooltip-body"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="topology-sidebar">
+                    <!-- Network Stats -->
+                    <div class="sidebar-card stats-card">
+                        <h3 class="sidebar-card-title"><i class="fa-solid fa-chart-line"></i> Live Network Stats</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-value" id="statNodes">0</span>
+                                <span class="stat-label">Nodes</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="statSubnets">0</span>
+                                <span class="stat-label">VLANs</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="statPackets">0</span>
+                                <span class="stat-label">Packets/s</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="statThreats">0</span>
+                                <span class="stat-label">Blocked</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Zone Breakdown — HomeCore style -->
+                    <div class="sidebar-card dept-card">
+                        <h3 class="sidebar-card-title"><i class="fa-solid fa-building-columns"></i> Zone Breakdown</h3>
+                        <div class="dept-list" id="deptList">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Event Log -->
+                    <div class="sidebar-card log-card">
+                        <h3 class="sidebar-card-title"><i class="fa-solid fa-scroll"></i> Security Event Log</h3>
+                        <div class="event-log" id="eventLog">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== VIEW: SECURITY LAYERS ===== -->
+        <section id="view-security" class="view">
+            <div class="security-layout">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fa-solid fa-layer-group"></i> Defense-in-Depth Security Architecture</h2>
+                    <p class="section-desc">Multi-layered security model protecting UETM's internal and external communications across all network tiers.</p>
+                </div>
+                <div class="security-layers-visual">
+                    <div class="layer-ring" id="layerPerimeter" data-layer="perimeter">
+                        <div class="layer-ring" id="layerNetwork" data-layer="network">
+                            <div class="layer-ring" id="layerHost" data-layer="host">
+                                <div class="layer-ring" id="layerApp" data-layer="application">
+                                    <div class="layer-ring" id="layerData" data-layer="data">
+                                        <div class="layer-core">
+                                            <i class="fa-solid fa-database"></i>
+                                            <span>Critical Data</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="security-detail-panel" id="securityDetailPanel">
+                    <div class="detail-placeholder">
+                        <i class="fa-solid fa-hand-pointer"></i>
+                        <p>Click on a security layer ring above to view its configuration details</p>
+                    </div>
+                </div>
+                <div class="security-cards-grid">
+                    <div class="security-card" data-card="firewall">
+                        <div class="security-card-icon"><i class="fa-solid fa-fire-flame-curved"></i></div>
+                        <h4>Next-Gen Firewall</h4>
+                        <p>Deep packet inspection, IPS/IDS, application-aware filtering at network perimeter</p>
+                        <div class="security-card-stat">
+                            <span class="stat-badge online">Active</span>
+                            <span>Cisco Firepower 2100</span>
+                        </div>
+                    </div>
+                    <div class="security-card" data-card="vpn">
+                        <div class="security-card-icon"><i class="fa-solid fa-globe"></i></div>
+                        <h4>IPSec/SSL VPN</h4>
+                        <p>Encrypted tunnels for remote faculty access and inter-campus WAN communication</p>
+                        <div class="security-card-stat">
+                            <span class="stat-badge online">Active</span>
+                            <span>AES-256 Encryption</span>
+                        </div>
+                    </div>
+                    <div class="security-card" data-card="nac">
+                        <div class="security-card-icon"><i class="fa-solid fa-user-shield"></i></div>
+                        <h4>802.1X NAC</h4>
+                        <p>Port-level authentication with RADIUS ensuring only authorized devices connect</p>
+                        <div class="security-card-stat">
+                            <span class="stat-badge standby">Partial</span>
+                            <span>FreeRADIUS + AD</span>
+                        </div>
+                    </div>
+                    <div class="security-card" data-card="siem">
+                        <div class="security-card-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                        <h4>SIEM / SOC</h4>
+                        <p>Centralized log aggregation, correlation, and real-time threat intelligence analysis</p>
+                        <div class="security-card-stat">
+                            <span class="stat-badge alert">Proposed</span>
+                            <span>Wazuh / ELK Stack</span>
+                        </div>
+                    </div>
+                    <div class="security-card" data-card="segmentation">
+                        <div class="security-card-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                        <h4>VLAN Segmentation</h4>
+                        <p>Microsegmentation isolating departments, labs, admin, and guest networks</p>
+                        <div class="security-card-stat">
+                            <span class="stat-badge online">Active</span>
+                            <span>35+ VLANs</span>
+                        </div>
+                    </div>
+                    <div class="security-card" data-card="endpoint">
+                        <div class="security-card-icon"><i class="fa-solid fa-laptop-medical"></i></div>
+                        <h4>Endpoint Protection</h4>
+                        <p>EDR agents on all workstations with behavioral analysis and automated response</p>
+                        <div class="security-card-stat">
+                            <span class="stat-badge standby">Partial</span>
+                            <span>CrowdStrike Falcon</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== VIEW: ATTACK SIMULATION ===== -->
+        <section id="view-attack" class="view">
+            <div class="attack-layout">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fa-solid fa-skull-crossbones"></i> Threat Simulation Engine</h2>
+                    <p class="section-desc">Simulate common attack vectors against the UETM network and observe how defense mechanisms respond in real-time.</p>
+                </div>
+                <div class="attack-controls">
+                    <div class="attack-scenario-cards" id="attackScenarios">
+                        <button class="attack-card" data-attack="ddos" id="btn-ddos">
+                            <div class="attack-card-icon"><i class="fa-solid fa-server"></i></div>
+                            <h4>DDoS Attack</h4>
+                            <p>Volumetric flood targeting HEC PERN gateway and web servers</p>
+                            <span class="attack-severity high">High Severity</span>
+                        </button>
+                        <button class="attack-card" data-attack="phishing" id="btn-phishing">
+                            <div class="attack-card-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+                            <h4>Spear Phishing</h4>
+                            <p>Credential harvesting email targeting faculty accounts</p>
+                            <span class="attack-severity medium">Medium Severity</span>
+                        </button>
+                        <button class="attack-card" data-attack="lateral" id="btn-lateral">
+                            <div class="attack-card-icon"><i class="fa-solid fa-route"></i></div>
+                            <h4>Lateral Movement</h4>
+                            <p>Compromised hostel device pivoting toward exam vault</p>
+                            <span class="attack-severity critical">Critical Severity</span>
+                        </button>
+                        <button class="attack-card" data-attack="rogue" id="btn-rogue">
+                            <div class="attack-card-icon"><i class="fa-solid fa-wifi"></i></div>
+                            <h4>Rogue AP</h4>
+                            <p>Unauthorized access point deployed in civil department block</p>
+                            <span class="attack-severity medium">Medium Severity</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="attack-simulation-area">
+                    <div class="attack-canvas-wrap">
+                        <canvas id="attackCanvas"></canvas>
+                    </div>
+                    <div class="attack-log-panel">
+                        <h3 class="log-panel-title"><i class="fa-solid fa-terminal"></i> Simulation Console</h3>
+                        <div class="attack-log-entries" id="attackLog">
+                            <div class="log-entry system">
+                                <span class="log-time">--:--:--</span>
+                                <span class="log-msg">Select an attack scenario to begin simulation...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== VIEW: IMPROVEMENTS ===== -->
+        <section id="view-improvements" class="view">
+            <div class="improvements-layout">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fa-solid fa-arrow-up-right-dots"></i> Current vs. Proposed Architecture</h2>
+                    <p class="section-desc">Analysis of UETM's existing network layout weaknesses and the proposed improvements for a secure, scalable campus network.</p>
+                </div>
+
+                <!-- Before / After Comparison Toggle -->
+                <div class="comparison-toggle-wrap">
+                    <button class="comparison-toggle active" id="btnCurrent" data-compare="current">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Current Layout (Issues)
+                    </button>
+                    <button class="comparison-toggle" id="btnProposed" data-compare="proposed">
+                        <i class="fa-solid fa-circle-check"></i> Proposed Improvements
+                    </button>
+                </div>
+
+                <!-- Current Issues -->
+                <div class="comparison-panel active" id="panel-current">
+                    <div class="issue-timeline">
+                        <div class="timeline-item critical">
+                            <div class="timeline-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+                            <div class="timeline-content">
+                                <h4>Flat Network — No Segmentation</h4>
+                                <p>All departments, labs, admin, and hostels share one broadcast domain. A single compromised device can reach every other device on the network.</p>
+                                <div class="risk-bar"><div class="risk-fill" style="width:95%"></div></div>
+                                <span class="risk-label">Risk: 95% — Critical</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item high">
+                            <div class="timeline-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+                            <div class="timeline-content">
+                                <h4>No Next-Generation Firewall</h4>
+                                <p>Basic ACLs on the router provide no deep packet inspection, no IDS/IPS, no application-level filtering. Advanced threats pass through undetected.</p>
+                                <div class="risk-bar"><div class="risk-fill" style="width:88%"></div></div>
+                                <span class="risk-label">Risk: 88% — High</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item high">
+                            <div class="timeline-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+                            <div class="timeline-content">
+                                <h4>No Centralized Authentication</h4>
+                                <p>No RADIUS/LDAP integration. Shared Wi-Fi passwords across departments. No individual accountability or device posture checking.</p>
+                                <div class="risk-bar"><div class="risk-fill" style="width:82%"></div></div>
+                                <span class="risk-label">Risk: 82% — High</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item medium">
+                            <div class="timeline-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="timeline-content">
+                                <h4>Unencrypted Internal Traffic</h4>
+                                <p>Exam data, grades, and administrative communications traverse the LAN in plaintext. Susceptible to MITM and packet sniffing attacks.</p>
+                                <div class="risk-bar"><div class="risk-fill" style="width:75%"></div></div>
+                                <span class="risk-label">Risk: 75% — Medium-High</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item medium">
+                            <div class="timeline-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="timeline-content">
+                                <h4>No Log Monitoring / SIEM</h4>
+                                <p>No centralized logging or security event correlation. Incidents go undetected for days or weeks. No forensic capability.</p>
+                                <div class="risk-bar"><div class="risk-fill" style="width:70%"></div></div>
+                                <span class="risk-label">Risk: 70% — Medium-High</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item low">
+                            <div class="timeline-icon"><i class="fa-solid fa-circle-info"></i></div>
+                            <div class="timeline-content">
+                                <h4>Physical Security Gaps</h4>
+                                <p>Server room access not restricted with biometric/card. Network switches in unlocked wiring closets accessible to students.</p>
+                                <div class="risk-bar"><div class="risk-fill" style="width:55%"></div></div>
+                                <span class="risk-label">Risk: 55% — Medium</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Proposed Improvements -->
+                <div class="comparison-panel" id="panel-proposed">
+                    <div class="improvements-grid">
+                        <div class="improvement-card">
+                            <div class="improvement-number">01</div>
+                            <div class="improvement-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                            <h4>VLAN Micro-Segmentation</h4>
+                            <p>Deploy 35+ VLANs isolating each department, lab cluster, admin wing, hostels, and guest networks. Inter-VLAN routing controlled via L3 ACLs on the core switch with strict deny-all-except policies.</p>
+                            <div class="improvement-tags">
+                                <span class="tag">IEEE 802.1Q</span>
+                                <span class="tag">Private VLANs</span>
+                                <span class="tag">ACLs</span>
+                            </div>
+                        </div>
+                        <div class="improvement-card">
+                            <div class="improvement-number">02</div>
+                            <div class="improvement-icon"><i class="fa-solid fa-fire-flame-curved"></i></div>
+                            <h4>Next-Gen Firewall Deployment</h4>
+                            <p>Install Cisco Firepower 2100 or Palo Alto PA-400 at the HEC PERN edge. Enable deep packet inspection, intrusion prevention (IPS), SSL decryption, and geo-IP blocking for known threat countries.</p>
+                            <div class="improvement-tags">
+                                <span class="tag">NGFW</span>
+                                <span class="tag">IPS/IDS</span>
+                                <span class="tag">DPI</span>
+                            </div>
+                        </div>
+                        <div class="improvement-card">
+                            <div class="improvement-number">03</div>
+                            <div class="improvement-icon"><i class="fa-solid fa-id-card"></i></div>
+                            <h4>802.1X Network Access Control</h4>
+                            <p>Implement FreeRADIUS or Cisco ISE with Active Directory backend. Every device authenticates before receiving network access. Guest portal with captive login for visitors.</p>
+                            <div class="improvement-tags">
+                                <span class="tag">RADIUS</span>
+                                <span class="tag">802.1X</span>
+                                <span class="tag">AD Integration</span>
+                            </div>
+                        </div>
+                        <div class="improvement-card">
+                            <div class="improvement-number">04</div>
+                            <div class="improvement-icon"><i class="fa-solid fa-lock"></i></div>
+                            <h4>End-to-End Encryption</h4>
+                            <p>Deploy TLS 1.3 for all internal web apps (LMS, exam portals). Implement IPSec tunnels for inter-building backbone links. Encrypt DNS with DoH/DoT to prevent snooping.</p>
+                            <div class="improvement-tags">
+                                <span class="tag">TLS 1.3</span>
+                                <span class="tag">IPSec</span>
+                                <span class="tag">DoH/DoT</span>
+                            </div>
+                        </div>
+                        <div class="improvement-card">
+                            <div class="improvement-number">05</div>
+                            <div class="improvement-icon"><i class="fa-solid fa-chart-area"></i></div>
+                            <h4>SIEM & SOC Establishment</h4>
+                            <p>Deploy Wazuh + ELK Stack for centralized log collection from all network devices. Set up correlation rules for brute-force, lateral movement, and data exfiltration detection.</p>
+                            <div class="improvement-tags">
+                                <span class="tag">Wazuh</span>
+                                <span class="tag">ELK Stack</span>
+                                <span class="tag">SOAR</span>
+                            </div>
+                        </div>
+                        <div class="improvement-card">
+                            <div class="improvement-number">06</div>
+                            <div class="improvement-icon"><i class="fa-solid fa-key"></i></div>
+                            <h4>Zero Trust Architecture</h4>
+                            <p>Move toward never-trust, always-verify model. Continuous authentication, micro-segmentation at application layer, and context-aware access policies for sensitive resources.</p>
+                            <div class="improvement-tags">
+                                <span class="tag">Zero Trust</span>
+                                <span class="tag">MFA</span>
+                                <span class="tag">Conditional Access</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== FOOTER ===== -->
+        <footer class="app-footer">
+            <div class="footer-left">
+                <span>Designed for <strong>Information Security CEP</strong> — UET Mardan</span>
+            </div>
+            <div class="footer-right">
+                <span class="footer-badge"><i class="fa-solid fa-shield-halved"></i> Secure Architecture v2.0</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

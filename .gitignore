@@ -1,0 +1,12 @@
+# System / IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Temporary / Scratch Files
+scratch/
+temp/
+tmp/
+*.log
+gemini-code-*.html
